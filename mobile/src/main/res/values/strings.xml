@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">ChEinthusan</string>
+    <string name="app_id">4F8B3483</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_ch_einthusan_search">ChEinthusanSearchActivity</string>
+
+    <string name="introducing_cast">Introducting Cast</string>
+    <string name="title_activity_expanded_controls">ExpandedControlsActivity</string>
+
+    <string name="media_route_menu_title">Play on&#8230;</string>
+    <string name="show_queue">Show Queue</string>
+</resources>
