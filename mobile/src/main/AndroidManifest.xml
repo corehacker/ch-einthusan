@@ -34,6 +34,7 @@
             android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
             android:value="com.bangaloretalkies.corehacker.cheinthusan.CastOptionsProvider" />
 
+        <activity android:name=".mediaplayer.LocalPlayerActivity"></activity>
     </application>
 
 </manifest>

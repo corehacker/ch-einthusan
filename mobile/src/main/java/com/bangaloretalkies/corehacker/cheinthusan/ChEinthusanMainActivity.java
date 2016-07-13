@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -12,6 +13,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
@@ -131,6 +133,30 @@ public class ChEinthusanMainActivity extends AppCompatActivity
 
     }
 
+    @Override
+    protected void onResume() {
+        mCastContext.addCastStateListener(mCastStateListener);
+        mCastContext.getSessionManager().addSessionManagerListener(
+                mSessionManagerListener, CastSession.class);
+        if (mCastSession == null) {
+            mCastSession = CastContext.getSharedInstance(this).getSessionManager()
+                    .getCurrentCastSession();
+        }
+        if (mQueueMenuItem != null) {
+            mQueueMenuItem.setVisible(
+                    (mCastSession != null) && mCastSession.isConnected());
+        }
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        mCastContext.removeCastStateListener(mCastStateListener);
+        mCastContext.getSessionManager().removeSessionManagerListener(
+                mSessionManagerListener, CastSession.class);
+        super.onPause();
+    }
+
     protected void connect(String url)
     {
         HttpURLConnection con = null;
@@ -221,6 +247,13 @@ public class ChEinthusanMainActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.action_show_queue).setVisible(
+                (mCastSession != null) && mCastSession.isConnected());
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -234,6 +267,13 @@ public class ChEinthusanMainActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public boolean dispatchKeyEvent(@NonNull KeyEvent event) {
+        return mCastContext.onDispatchVolumeKeyEventBeforeJellyBean(event)
+                || super.dispatchKeyEvent(event);
+    }
+
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override

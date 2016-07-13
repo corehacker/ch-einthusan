@@ -1,18 +1,27 @@
 package com.bangaloretalkies.corehacker.cheinthusan;
 
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import com.bangaloretalkies.corehacker.cheinthusan.mediaplayer.LocalPlayerActivity;
+import com.google.android.gms.cast.MediaInfo;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -64,6 +73,45 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
 
                 new MyTask().execute(true);
             }
+        });
+
+
+        listViewSearchResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+
+                // ListView Clicked item index
+                int itemPosition     = position;
+
+                // ListView Clicked item value
+                String  itemValue    = (String) searchList.get(position);
+
+                // Show Alert
+                Toast.makeText(getApplicationContext(),
+                        "Position: " + itemPosition + "  ListItem: " + itemValue , Toast.LENGTH_SHORT)
+                        .show();
+                String url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/hls/DesigningForGoogleCast.m3u8";
+                String mimeType = "application/x-mpegurl";
+                int duration = 333;
+
+                MediaInfo item = new MediaInfo.Builder(url)
+                        .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                        .setContentType(mimeType)
+                        //.setMetadata(movieMetadata)
+                        //.setMediaTracks(tracks)
+                        .setStreamDuration(duration * 1000)
+                        //.setCustomData(jsonObj)
+                        .build();
+
+                Intent intent = new Intent(getApplicationContext(), LocalPlayerActivity.class);
+                intent.putExtra("media", item);
+                intent.putExtra("shouldStart", false);
+                ActivityCompat.startActivity(ChEinthusanSearchActivity.this, intent, null);
+
+            }
+
         });
     }
 
@@ -177,3 +225,10 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
         }
     }
 }
+
+/*
+Intent intent = new Intent(getActivity(), LocalPlayerActivity.class);
+            intent.putExtra("media", item);
+            intent.putExtra("shouldStart", false);
+            ActivityCompat.startActivity(getActivity(), intent, options.toBundle());
+ */

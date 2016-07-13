@@ -13,4 +13,14 @@
 
     <string name="media_route_menu_title">Play on&#8230;</string>
     <string name="show_queue">Show Queue</string>
+
+    <string name="transition_image">transition-image</string>
+
+    <string name="video_error_media_load_timeout">Media loading timed out</string>
+    <string name="video_error_server_unaccessible">Media server was not reachable</string>
+    <string name="video_error_unknown_error">Failed to load video</string>
+
+    <string name="ok">OK</string>
+    <string name="oops">Oops</string>
+    <string name="error">Error</string>
 </resources>
