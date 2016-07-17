@@ -3,6 +3,8 @@ package com.bangaloretalkies.corehacker.cheinthusan;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.net.UrlQuerySanitizer;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -36,8 +38,10 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class ChEinthusanSearchActivity extends AppCompatActivity {
@@ -51,6 +55,8 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
     Set<String> searchSet = new LinkedHashSet<>();
     ArrayAdapter<String> adapter;
     ArrayAdapter<String> emptyAdapter;
+    Map <String, ChEinthusanMovieInfo> searchMap = new HashMap<>();
+    ChEinthusanMovieInfo selectedMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,11 +94,20 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
                 // ListView Clicked item value
                 String  itemValue    = (String) searchList.get(position);
 
+                // new MyTask2().execute(true);
+
+
                 // Show Alert
                 Toast.makeText(getApplicationContext(),
                         "Position: " + itemPosition + "  ListItem: " + itemValue , Toast.LENGTH_SHORT)
                         .show();
-                String url = "https://commondatastorage.googleapis.com/gtv-videos-bucket/CastVideos/hls/DesigningForGoogleCast.m3u8";
+                /*
+                searchMap.put(link.text(), new ChEinthusanMovieInfo(link.attr("href"), movieId, movieName, movieLang));
+                 */
+                selectedMovie = searchMap.get(itemValue);
+                new MyTask2().execute(true);
+                /*
+                String url = "http://75.126.39.81/einthusancom/cold/D0643.mp4.m3u8?st=0poM5-cyt7gEZTz8HHwzeA&e=1468667598";
                 String mimeType = "application/x-mpegurl";
                 int duration = 333;
 
@@ -109,7 +124,7 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
                 intent.putExtra("media", item);
                 intent.putExtra("shouldStart", false);
                 ActivityCompat.startActivity(ChEinthusanSearchActivity.this, intent, null);
-
+                */
             }
 
         });
@@ -188,19 +203,116 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
         for (Element link : searchedLinks) {
             Log.d("ChEinthusanSearch", " * a: <" + link.attr("href") + ">  (" + link.text() + ")");
 
+            Uri uri = Uri.parse(link.attr("href"));
+            // Set<String> args = uri.getQueryParameterNames();
+            String movieId = uri.getQueryParameter("id");
+            String movieName = uri.getQueryParameter("hindimoviesonline");
+            String movieLang = uri.getQueryParameter("lang");
+            Log.d("ChEinthusanSearch", "movieId: " + movieId + ", movieName: " + movieName + ", movieLang: " + movieLang);
+
+
+            // url.
 
             if (!searchSet.contains(link.text())) {
                 searchList.add(link.text());
                 searchSet.add(link.text());
+                searchMap.put(link.text(), new ChEinthusanMovieInfo(link.attr("href"), movieId, movieName, movieLang));
             }
 
         }
 
-        Log.d("ChEinthusanSearch", "Search Results: " + info.html());
+        // Log.d("ChEinthusanSearch", "Search Results: " + info.html());
 
         adapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, searchList);
         updateSearchList ();
+    }
+
+    protected void connect2(String url)
+    {
+        HttpURLConnection con = null;
+        URL obj = null;
+        try {
+            obj = new URL(url);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        try {
+            con = (HttpURLConnection) obj.openConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            con.setRequestMethod("GET");
+        } catch (ProtocolException e) {
+            e.printStackTrace();
+        }
+
+        /*
+            curl -i 'http://cdn.einthusan.com/geturl/644/hd/San%2CDallas%2CToronto%2CWashington%2CLondon%2CSydney/' -H 'Origin: http://www.einthusan.com' -H 'Referer: http://www.einthusan.com'
+        */
+        con.setRequestProperty("Origin", "http://www.einthusan.com");
+        con.setRequestProperty("Referer", "http://www.einthusan.com");
+
+        int responseCode = 0;
+        try {
+            responseCode = con.getResponseCode();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Log.d("ChEinthusanSearch", "\nSending 'GET' request to URL : " + url);
+
+        Log.d("ChEinthusanSearch", "Response Code : " + responseCode);
+
+
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(
+                    new InputStreamReader(con.getInputStream()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        try {
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //print result
+        String responseUrl = response.toString();
+        Log.d("ChEinthusan", "Response: " + responseUrl);
+        if (responseUrl.startsWith("http") && responseUrl.contains("m3u8")) {
+
+                // String url = responseUrl;
+                String mimeType = "application/x-mpegurl";
+                int duration = 333;
+
+                MediaInfo item = new MediaInfo.Builder(responseUrl)
+                        .setStreamType(MediaInfo.STREAM_TYPE_BUFFERED)
+                        .setContentType(mimeType)
+                        //.setMetadata(movieMetadata)
+                        //.setMediaTracks(tracks)
+                        .setStreamDuration(duration * 1000)
+                        //.setCustomData(jsonObj)
+                        .build();
+
+                Intent intent = new Intent(getApplicationContext(), LocalPlayerActivity.class);
+                intent.putExtra("media", item);
+                intent.putExtra("shouldStart", false);
+                ActivityCompat.startActivity(ChEinthusanSearchActivity.this, intent, null);
+        }
     }
 
     public void updateSearchList ()
@@ -221,6 +333,29 @@ public class ChEinthusanSearchActivity extends AppCompatActivity {
         protected Boolean doInBackground(Boolean... booleen) {
             Log.v("ChEinthusanSearch", "Search String = " + searchText);
             connect("http://www.einthusan.com/search?lang=hindi&search_query=" + searchText);
+            return null;
+        }
+    }
+
+    public class MyTask2 extends AsyncTask<Boolean, Integer, Boolean> {
+        @Override
+        protected Boolean doInBackground(Boolean... booleen) {
+            Log.v("ChEinthusanSearch", "Search String = " + searchText);
+            /*
+            curl -i 'http://cdn.einthusan.com/geturl/644/hd/San%2CDallas%2CToronto%2CWashington%2CLondon%2CSydney/' -H 'Origin: http://www.einthusan.com' -H 'Referer: http://www.einthusan.com'
+             */
+
+
+
+            String movieId = selectedMovie.getId();
+            String movieName = selectedMovie.getName();
+            String movieLang = selectedMovie.getLang();
+            Log.d("ChEinthusanSearch", "Selected :: movieId: " + movieId + ", movieName: " + movieName + ", movieLang: " + movieLang);
+
+            String url = "http://cdn.einthusan.com/geturl/" + movieId + "/hd/San%2CDallas%2CToronto%2CWashington%2CLondon%2CSydney/";
+
+            Log.d("ChEinthusanSearch", "Selected movie url: " + url);
+            connect2(url);
             return null;
         }
     }
