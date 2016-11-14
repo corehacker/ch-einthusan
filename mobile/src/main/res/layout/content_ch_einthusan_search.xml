@@ -12,6 +12,43 @@
     tools:context="com.bangaloretalkies.corehacker.cheinthusan.ChEinthusanSearchActivity"
     tools:showIn="@layout/activity_ch_einthusan_search">
 
+    <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/radio_group_lang_select">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RadioButton android:id="@+id/radio_lang_hindi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hindi"
+                android:onClick="onRadioButtonClicked" />
+            <RadioButton android:id="@+id/radio_lang_kannada"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kannada"
+                android:onClick="onRadioButtonClicked"
+                android:layout_gravity="right" />
+            <RadioButton android:id="@+id/radio_lang_tamil"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onRadioButtonClicked"
+                android:text="Tamil"/>
+            <RadioButton android:id="@+id/radio_lang_telugu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Telugu"
+                android:onClick="onRadioButtonClicked"
+                android:layout_gravity="right" />
+        </LinearLayout>
+
+
+    </RadioGroup>
+
     <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
