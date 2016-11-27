@@ -1,9 +1,12 @@
 package com.bangaloretalkies.corehacker.cheinthusan;
 
+import java.io.Serializable;
+
 /**
  * Created by corehacker on 7/12/16.
  */
-public class ChEinthusanMovieInfo {
+public class ChEinthusanMovieInfo implements Serializable {
+    static final long serialVersionUID = 727566175075960653L;
     String url;
     String id;
     String name;
