@@ -11,7 +11,6 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.telecom.Connection;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -28,15 +27,16 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.androidquery.AQuery;
+import com.bangaloretalkies.corehacker.cheinthusan.ChEinthusanMovieInfo;
 import com.bangaloretalkies.corehacker.cheinthusan.R;
+import com.bangaloretalkies.corehacker.cheinthusan.expandedcontrols.ExpandedControlsActivity;
+import com.bangaloretalkies.corehacker.cheinthusan.settings.CastPreference;
 import com.bangaloretalkies.corehacker.cheinthusan.utils.Utils;
 import com.google.android.gms.cast.MediaInfo;
-import com.google.android.gms.cast.MediaMetadata;
 import com.google.android.gms.cast.framework.CastButtonFactory;
 import com.google.android.gms.cast.framework.CastContext;
 import com.google.android.gms.cast.framework.CastSession;
 import com.google.android.gms.cast.framework.SessionManagerListener;
-import com.google.android.gms.cast.framework.media.MediaUtils;
 import com.google.android.gms.cast.framework.media.RemoteMediaClient;
 
 import java.util.Timer;
@@ -71,6 +71,7 @@ public class LocalPlayerActivity extends AppCompatActivity {
     private CastSession mCastSession;
     private SessionManagerListener<CastSession> mSessionManagerListener;
     private MenuItem mQueueMenuItem;
+    private ChEinthusanMovieInfo movieInfo;
 
     /**
      * indicates whether we are doing a local or a remote playback
@@ -91,6 +92,11 @@ public class LocalPlayerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_local_player);
 
+        Bundle bundle = getIntent().getExtras();
+        movieInfo = (ChEinthusanMovieInfo) bundle.getSerializable("movie");
+
+        Log.d(TAG, "Movie info: " + movieInfo.getName());
+
         mAquery = new AQuery(this);
         loadViews();
         setupControlsCallbacks();
@@ -99,7 +105,6 @@ public class LocalPlayerActivity extends AppCompatActivity {
         mCastContext.registerLifecycleCallbacksBeforeIceCreamSandwich(this, savedInstanceState);
         mCastSession = mCastContext.getSessionManager().getCurrentCastSession();
         // see what we need to play and where
-        Bundle bundle = getIntent().getExtras();
         if (bundle != null) {
             mSelectedMedia = getIntent().getParcelableExtra("media");
             setupActionBar();
@@ -305,8 +310,8 @@ public class LocalPlayerActivity extends AppCompatActivity {
             return;
         }
         remoteMediaClient.load(mSelectedMedia, autoPlay, position);
-        //Intent intent = new Intent(this, ExpandedControlsActivity.class);
-        //startActivity(intent);
+        Intent intent = new Intent(this, ExpandedControlsActivity.class);
+        startActivity(intent);
     }
 
     private void setCoverArtStatus(String url) {
@@ -578,8 +583,8 @@ public class LocalPlayerActivity extends AppCompatActivity {
             case PLAYING:
                 mLoading.setVisibility(View.INVISIBLE);
                 mPlayPause.setVisibility(View.VISIBLE);
-                //mPlayPause.setImageDrawable(
-                //        getResources().getDrawable(R.drawable.ic_av_pause_dark));
+                mPlayPause.setImageDrawable(
+                        getResources().getDrawable(R.drawable.ic_av_pause_dark));
                 mPlayCircle.setVisibility(isConnected ? View.VISIBLE : View.GONE);
                 break;
             case IDLE:
@@ -591,8 +596,8 @@ public class LocalPlayerActivity extends AppCompatActivity {
             case PAUSED:
                 mLoading.setVisibility(View.INVISIBLE);
                 mPlayPause.setVisibility(View.VISIBLE);
-                //mPlayPause.setImageDrawable(
-                //        getResources().getDrawable(R.drawable.ic_av_play_dark));
+                mPlayPause.setImageDrawable(
+                        getResources().getDrawable(R.drawable.ic_av_play_dark));
                 mPlayCircle.setVisibility(isConnected ? View.VISIBLE : View.GONE);
                 break;
             case BUFFERING:
@@ -622,8 +627,8 @@ public class LocalPlayerActivity extends AppCompatActivity {
             // MediaMetadata mm = mSelectedMedia.getMetadata();
             //mDescriptionView.setText(mSelectedMedia.getCustomData().optString(
             //        Connection.VideoProvider.KEY_DESCRIPTION));
-            mTitleView.setText("Test playback");
-            mAuthorView.setText("Corehacker");
+            mTitleView.setText(movieInfo.getName());
+            mAuthorView.setText(movieInfo.getName());
             mDescriptionView.setVisibility(View.VISIBLE);
             mTitleView.setVisibility(View.VISIBLE);
             mAuthorView.setVisibility(View.VISIBLE);
@@ -659,8 +664,8 @@ public class LocalPlayerActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         Intent intent;
         if (item.getItemId() == R.id.action_settings) {
-            //intent = new Intent(LocalPlayerActivity.this, CastPreference.class);
-            //startActivity(intent);
+            intent = new Intent(LocalPlayerActivity.this, CastPreference.class);
+            startActivity(intent);
         } else if (item.getItemId() == R.id.action_show_queue) {
             //intent = new Intent(LocalPlayerActivity.this, QueueListViewActivity.class);
             //startActivity(intent);
@@ -672,9 +677,9 @@ public class LocalPlayerActivity extends AppCompatActivity {
 
     private void setupActionBar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitle("Sample playback...");
-        //setSupportActionBar(toolbar);
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setTitle(movieInfo.getName());
+/*        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);*/
     }
 
     private void loadViews() {
