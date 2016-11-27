@@ -1,5 +1,6 @@
 package com.bangaloretalkies.corehacker.cheinthusan.utils;
 
+import com.bangaloretalkies.corehacker.cheinthusan.expandedcontrols.ExpandedControlsActivity;
 import com.google.android.gms.cast.MediaInfo;
 import com.google.android.gms.cast.MediaQueueItem;
 import com.google.android.gms.cast.MediaStatus;
@@ -143,7 +144,7 @@ public class Utils {
      * Show a popup to select whether the selected item should play immediately, be added to the
      * end of queue or be added to the queue right after the current item.
      */
-    public static void showQueuePopup(final Context context, View view, final MediaInfo mediaInfo) {
+/*    public static void showQueuePopup(final Context context, View view, final MediaInfo mediaInfo) {
         CastSession castSession =
                 CastContext.getSharedInstance(context).getSessionManager().getCurrentCastSession();
         if (castSession == null || !castSession.isConnected()) {
@@ -162,6 +163,88 @@ public class Utils {
                 return true;
             }
         };
+    }*/
+
+
+    /**
+     * Show a popup to select whether the selected item should play immediately, be added to the
+     * end of queue or be added to the queue right after the current item.
+     */
+    public static void showQueuePopup(final Context context, View view, final MediaInfo mediaInfo) {
+        CastSession castSession =
+                CastContext.getSharedInstance(context).getSessionManager().getCurrentCastSession();
+        if (castSession == null || !castSession.isConnected()) {
+            Log.w(TAG, "showQueuePopup(): not connected to a cast device");
+            return;
+        }
+        final RemoteMediaClient remoteMediaClient = castSession.getRemoteMediaClient();
+        if (remoteMediaClient == null) {
+            Log.w(TAG, "showQueuePopup(): null RemoteMediaClient");
+            return;
+        }
+        final QueueDataProvider provider = QueueDataProvider.getInstance(context);
+        PopupMenu popup = new PopupMenu(context, view);
+        popup.getMenuInflater().inflate(
+                provider.isQueueDetached() || provider.getCount() == 0
+                        ? R.menu.detached_popup_add_to_queue
+                        : R.menu.popup_add_to_queue, popup.getMenu());
+        PopupMenu.OnMenuItemClickListener clickListener = new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem menuItem) {
+                QueueDataProvider provider = QueueDataProvider.getInstance(context);
+                MediaQueueItem queueItem = new MediaQueueItem.Builder(mediaInfo).setAutoplay(
+                        true).setPreloadTime(PRELOAD_TIME_S).build();
+                MediaQueueItem[] newItemArray = new MediaQueueItem[]{queueItem};
+                String toastMessage = null;
+                if (provider.isQueueDetached() && provider.getCount() > 0) {
+                    if ((menuItem.getItemId() == R.id.action_play_now)
+                            || (menuItem.getItemId() == R.id.action_add_to_queue)) {
+                        MediaQueueItem[] items = Utils
+                                .rebuildQueueAndAppend(provider.getItems(), queueItem);
+                        remoteMediaClient.queueLoad(items, provider.getCount(),
+                                MediaStatus.REPEAT_MODE_REPEAT_OFF, null);
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (provider.getCount() == 0) {
+                        remoteMediaClient.queueLoad(newItemArray, 0,
+                                MediaStatus.REPEAT_MODE_REPEAT_OFF, null);
+                    } else {
+                        int currentId = provider.getCurrentItemId();
+                        if (menuItem.getItemId() == R.id.action_play_now) {
+                            remoteMediaClient.queueInsertAndPlayItem(queueItem, currentId, null);
+                        } else if (menuItem.getItemId() == R.id.action_play_next) {
+                            int currentPosition = provider.getPositionByItemId(currentId);
+                            if (currentPosition == provider.getCount() - 1) {
+                                //we are adding to the end of queue
+                                remoteMediaClient.queueAppendItem(queueItem, null);
+                            } else {
+                                int nextItemId = provider.getItem(currentPosition + 1).getItemId();
+                                remoteMediaClient.queueInsertItems(newItemArray, nextItemId, null);
+                            }
+                            toastMessage = context.getString(
+                                    R.string.queue_item_added_to_play_next);
+                        } else if (menuItem.getItemId() == R.id.action_add_to_queue) {
+                            remoteMediaClient.queueAppendItem(queueItem, null);
+                            toastMessage = context.getString(R.string.queue_item_added_to_queue);
+                        } else {
+                            return false;
+                        }
+                    }
+                }
+                if (menuItem.getItemId() == R.id.action_play_now) {
+                    Intent intent = new Intent(context, ExpandedControlsActivity.class);
+                    context.startActivity(intent);
+                }
+                if (!TextUtils.isEmpty(toastMessage)) {
+                    Toast.makeText(context, toastMessage, Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        };
+        popup.setOnMenuItemClickListener(clickListener);
+        popup.show();
     }
 
     public static MediaQueueItem[] rebuildQueue(List<MediaQueueItem> items) {

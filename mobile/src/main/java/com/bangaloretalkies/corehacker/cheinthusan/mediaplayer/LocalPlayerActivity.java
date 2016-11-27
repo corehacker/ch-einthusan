@@ -310,6 +310,7 @@ public class LocalPlayerActivity extends AppCompatActivity {
             return;
         }
         remoteMediaClient.load(mSelectedMedia, autoPlay, position);
+        Log.d(TAG, "Launching activity ExpandedControlsActivity");
         Intent intent = new Intent(this, ExpandedControlsActivity.class);
         startActivity(intent);
     }

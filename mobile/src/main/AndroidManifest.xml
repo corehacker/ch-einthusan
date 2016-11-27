@@ -50,7 +50,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.bangaloretalkies.corehacker.cheinthusan.ChEinthusanMainActivity"/>
+                android:value="com.bangaloretalkies.corehacker.cheinthusan.mediaplayer.LocalPlayerActivity"/>
         </activity>
 
         <meta-data
